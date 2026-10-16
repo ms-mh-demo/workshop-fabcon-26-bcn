@@ -1,6 +1,7 @@
 table Store
 	lineageTag: 54d5f884-12db-4e03-a120-08cd725db2c4
 
+	/// Counts rows in the Store table under the current filters, representing stores in the model rather than online or wholesale locations. NRG uses store coverage and format comparisons to support monthly sales-per-square-meter reviews.
 	measure '# Stores' = COUNTROWS('Store')
 		formatString: #,##0
 		lineageTag: 868df9c8-f579-47d1-a776-3d29121df7c7

@@ -1,6 +1,7 @@
 table Customer
 	lineageTag: 04227f5a-0aeb-4448-b5c5-dbf3e276da85
 
+	/// Counts rows in the Customer table under the current filters, representing customer records rather than only customers who purchased in the selected period. Use # Customers (w/ Sales) when the question is specifically about active buyers.
 	measure '# Customers' = COUNTROWS('Customer')
 		formatString: #,##0
 		lineageTag: a8dc565a-aa9b-40dc-902c-1ba2596b0977

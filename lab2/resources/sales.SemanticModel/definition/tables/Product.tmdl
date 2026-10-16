@@ -1,6 +1,7 @@
 table Product
 	lineageTag: e9374b9a-faee-4f9e-b2e7-d9aafb9d6a91
 
+	/// Counts rows in the Product table under the current filters, representing products in the catalog rather than only products with sales. At NRG, use brand and product filters to review the assortment across Contoso Home, Fabrikam Apparel, Litware Electronics, and Northwind Kids.
 	measure '# Products' = COUNTROWS('Product')
 		formatString: #,##0
 		lineageTag: 1f8f1a2a-06b6-4989-8af7-212719cf3617
