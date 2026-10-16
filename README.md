@@ -24,6 +24,10 @@ Walk away ready to apply agentic development to your Power BI projects with conf
 
     ![gh-markdown-outline](resources/img/gh-markdown-outline.png)
 
+## Project documentation
+
+See the [Power BI artifact catalog](docs/README.md) for the source-controlled sales project's semantic model, measures, report pages, filters, data sources, and development workflow. The catalog also identifies packaged PBIX workshop resources and inspection limitations.
+
 ## Labs
 
 ### [Lab 1 - Agentic Power BI on the Web](lab1/lab.md)
