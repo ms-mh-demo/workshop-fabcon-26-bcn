@@ -1,0 +1,25 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	discourageImplicitMeasures
+	sourceQueryCulture: en-GB
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_QueryOrder = ["HttpSource","Environment","Randomizer","Calendar","Sales","Product","Customer","Store"]
+
+annotation __TEdtr = 1
+
+annotation PBI_ProTooling = ["DevMode","CalcGroup","TMDLView_Desktop","DaxQueryView_Desktop"]
+
+ref table Calendar
+ref table Sales
+ref table Product
+ref table Customer
+ref table Store
+
+ref cultureInfo en-US
+

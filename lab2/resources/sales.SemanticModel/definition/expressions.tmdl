@@ -1,0 +1,19 @@
+expression HttpSource = "https://raw.githubusercontent.com/RuiRomano/workshop-fabcon-26-bcn/main/resources/sample-data/" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 39c7bef4-452b-4b29-846c-f788ef1af01f
+
+	annotation PBI_ResultType = Text
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression Environment = "DEV" meta [IsParameterQuery=true, List={"DEV", "QUAL", "PRD"}, DefaultValue="DEV", Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 64edd943-1a90-4438-b62f-bb95a9da1510
+
+	annotation PBI_ResultType = Text
+
+expression Randomizer = 0.6 meta [IsParameterQuery=true, Type="Number", IsParameterQueryRequired=true]
+	lineageTag: c92d2f56-fbbe-4162-b5ce-373932bf5cf2
+
+	annotation PBI_ResultType = Number
+
+	annotation PBI_NavigationStepName = Navigation
+
