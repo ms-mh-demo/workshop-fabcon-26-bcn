@@ -9,14 +9,22 @@ The sales report presents Northwind Retail Group sales analysis, followed by a c
 | Source | [lab2/resources/sales.Report](../lab2/resources/sales.Report/) |
 | Semantic model | [sales](sales.semantic-model.md), resolved locally through `../sales.SemanticModel` |
 | Entry point | [sales.pbip](../lab2/resources/sales.pbip) |
-| Pages | 2: Sales, KPI |
-| Visuals | 9 total: 7 on Sales, 2 on KPI |
-| Canvas | Both pages 1280 x 720, FitToPage |
-| Landing / saved active page | Sales |
+| Pages | 3: Sales, KPI, Page 1 |
+| Visuals | 10 total: 7 on Sales, 2 on KPI, 1 on Page 1 |
+| Canvas | Sales and KPI: 1280 x 720; Page 1: 1920 x 1080; all FitToPage |
+| Landing / saved active page | Page 1 |
 | Base theme | Fluent2-CY26SU08 |
 | Custom theme | [CopilotDefault.json](../lab2/resources/sales.Report/StaticResources/RegisteredResources/CopilotDefault.json) |
 
-This guide describes saved report metadata, not a verified live rendering. The model is Import mode; the local binding does not identify a published workspace or service semantic model.
+This guide describes saved report metadata. All three pages were reloaded in Desktop, captured, and visually reviewed after the title and grid changes. The model is Import mode; the local binding does not identify a published workspace or service semantic model.
+
+### Visual titles and layout
+
+Visual container titles are explicitly disabled on all ten visuals across all three pages. Static page-heading textboxes, card labels, slicer headers, axis labels, and legends are preserved.
+
+- **Sales:** 24-pixel side margins and 16-pixel gutters. The cards and date slicer share a top edge at y=88 and a height of 112 pixels. The three breakdown charts share y=216 and identical 400 x 264 dimensions, at x=24, 440, and 856. The full-width trend occupies x=24, y=496, width=1232, height=200, aligning with both outer edges of the breakdown row.
+- **KPI:** The heading aligns with the Sales heading at x=24, y=16. The matrix occupies x=24, y=88, width=1232, height=608.
+- **Page 1:** The currency/sales table occupies x=24, y=24, width=1872, height=1032, with uniform 24-pixel canvas margins.
 
 ## Report Flow
 
@@ -32,7 +40,7 @@ Page order and landing behavior come from [pages.json](../lab2/resources/sales.R
 
 Source: [Sales page definition](../lab2/resources/sales.Report/definition/pages/ReportSection89a9619c7025093ade1c/page.json).
 
-**Screenshot limitation:** No current-project screenshot was captured. The Desktop preview availability probe reported `available: false` because `bridge.manifest probe timed out after 3000ms`. Visual appearance, actual slicer control style, populated values, and runtime interactions remain unverified. Workshop illustrations are not substituted for current-page evidence.
+**Screenshot validation:** A fresh Desktop capture confirmed the page heading, populated cards, date-range slicer, title-free charts, aligned chart edges, and consistent gutters. Runtime interactions were not exercised.
 
 #### Main Metrics
 
@@ -53,7 +61,7 @@ Sales Amount and Margin use dollar formats, while Sales Amount (LY) uses a euro 
 | `8b8727ff328bdc49692c` | Slicer | Calendar.Date | Date selection, sorted ascending; no explicit saved selection predicate or control mode |
 | `5acb1caf298449a8acb4` | Clustered bar chart | Product.Category > Subcategory > Product; Sales Amount | Category active initially; additional product levels available; sorted by Sales Amount descending |
 | `32b08d7f32cb5f9816cc` | Bar chart | Product.Brand > Product.Product; Customer.Gender series; Sales Amount | Brand active initially; compare customer-gender series and drill to products; sorted by Sales Amount descending |
-| `4b18758374093c2e23fb` | Scatter chart | Store.Store series; Calendar.Month Name X; Sales Amount Y; # Customers (w/ Sales) size | Saved field roles are as listed; title says "Sales Amount vs # Customers," but customer count is size, not X |
+| `4b18758374093c2e23fb` | Scatter chart | Store.Store series; Calendar.Month Name X; Sales Amount Y; # Customers (w/ Sales) size | Saved field roles are as listed; hidden title text is "Sales Amount vs # Customers," but customer count is size, not X |
 | `484fbdd73143c5bf71fa` | Area chart | Calendar.Year-Month; Sales Amount; Sales Amount (LY); Moving average | Time comparison sorted by Year-Month ascending |
 | `eb5c360e357e8b54eb88` | Textbox | Northwind Retail Group - Sales Analysis | Static page heading |
 
@@ -86,7 +94,7 @@ Presence of a filter card does not establish an active restriction. No specific 
 
 Source: [KPI page definition](../lab2/resources/sales.Report/definition/pages/ReportSection6687c48ea8a9b7740002/page.json).
 
-**Screenshot limitation:** No current-project screenshot was captured for KPI either. The same Desktop bridge timeout prevented rendered-page inspection. Matrix values, totals, formatting, and overflow were not visually verified.
+**Screenshot validation:** A fresh Desktop capture confirmed the preserved page heading, hidden matrix title, aligned matrix container, and populated values. The matrix retains horizontal scrolling for columns beyond the viewport.
 
 #### Main Metrics
 
