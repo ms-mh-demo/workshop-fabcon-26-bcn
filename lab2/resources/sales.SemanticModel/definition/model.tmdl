@@ -9,7 +9,7 @@ model Model
 
 annotation __PBI_TimeIntelligenceEnabled = 0
 
-annotation PBI_QueryOrder = ["HttpSource","Environment","Randomizer","Calendar","Sales","Product","Customer","Store"]
+annotation PBI_QueryOrder = ["HttpSource","Environment","Randomizer","Calendar","Sales","Product","Customer","Store","Currency Exchange"]
 
 annotation __TEdtr = 1
 
@@ -20,6 +20,8 @@ ref table Sales
 ref table Product
 ref table Customer
 ref table Store
+ref table 'Currency Exchange'
+ref table 'Currency Conversion'
 
 ref cultureInfo en-US
 

@@ -4,8 +4,8 @@
     {
       "ordinal": 0,
       "scrollPosition": {
-        "x": 0,
-        "y": 7.1317831582801281
+        "x": 501.45348837209303,
+        "y": 0
       },
       "nodes": [
         {
@@ -19,7 +19,7 @@
             "height": 1000,
             "width": 254
           },
-          "zIndex": 8
+          "zIndex": 5
         },
         {
           "location": {
@@ -32,7 +32,7 @@
             "height": 481,
             "width": 276
           },
-          "zIndex": 3
+          "zIndex": 2
         },
         {
           "location": {
@@ -45,7 +45,7 @@
             "height": 614.5452740000004,
             "width": 234
           },
-          "zIndex": 9
+          "zIndex": 6
         },
         {
           "location": {
@@ -58,7 +58,7 @@
             "height": 624.44976000000031,
             "width": 232
           },
-          "zIndex": 5
+          "zIndex": 4
         },
         {
           "location": {
@@ -71,7 +71,32 @@
             "height": 618.42410200000029,
             "width": 234
           },
-          "zIndex": 4
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 1157.9309059858797,
+            "y": 606.66709433333369
+          },
+          "nodeIndex": "Currency Conversion",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 7
+        },
+        {
+          "location": {
+            "x": 1441.9309059858797,
+            "y": 570.66709433333369
+          },
+          "nodeIndex": "Currency Exchange",
+          "nodeLineageTag": "91d9c0f3-00f1-4b7f-aee0-7277e660241e",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 1
         }
       ],
       "name": "All tables",

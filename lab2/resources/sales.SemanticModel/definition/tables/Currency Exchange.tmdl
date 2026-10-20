@@ -1,0 +1,64 @@
+/// Disconnected conversion lookup at rate date, source currency, and target currency grain. Exchange Rate multiplies a local-currency amount into EUR, USD, or GBP. The Currency Conversion group uses monthly closing rates through 2019 and exact daily rates from 2020.
+table 'Currency Exchange'
+	isHidden
+	lineageTag: 91d9c0f3-00f1-4b7f-aee0-7277e660241e
+
+	/// Monthly closing date through 2019, or exact daily rate date from January 2020.
+	column Date
+		dataType: dateTime
+		isHidden
+		formatString: yyyy-MM-dd
+		isAvailableInMdx: false
+		lineageTag: 715c99e0-f97f-4711-a99c-f4ca5ffb70c7
+		summarizeBy: none
+		sourceColumn: Date
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Source transaction currency code, matched to Sales Currency Code.
+	column 'From Currency'
+		dataType: string
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: c1b050b8-5a1c-4a58-9fac-6fc7af4294c8
+		summarizeBy: none
+		sourceColumn: FromCurrency
+
+	/// Target reporting currency code: EUR, USD, or GBP.
+	column 'To Currency'
+		dataType: string
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: 80d07b09-0b49-47a0-b830-6b6852c0f334
+		summarizeBy: none
+		sourceColumn: ToCurrency
+
+	/// Multiply the source-currency amount by this rate to obtain the target-currency amount.
+	column 'Exchange Rate'
+		dataType: decimal
+		isHidden
+		formatString: 0.0000
+		isAvailableInMdx: false
+		lineageTag: 12480907-173d-47aa-9658-107475c8f3a5
+		summarizeBy: none
+		sourceColumn: Exchange
+
+	partition 'Currency Exchange' = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(
+				        Web.Contents("https://raw.githubusercontent.com/RuiRomano/workshop-fabcon-26-bcn/main/resources/sample-data/RAW-CurrencyExchange.csv"),
+				        [Delimiter = ",", Columns = 4, Encoding = 65001, QuoteStyle = QuoteStyle.None]
+				    ),
+				    PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    ChangedTypes = Table.TransformColumnTypes(
+				        PromotedHeaders,
+				        {{"Date", type date}, {"FromCurrency", type text}, {"ToCurrency", type text}, {"Exchange", Currency.Type}},
+				        "en-US"
+				    )
+				in
+				    ChangedTypes
+
+	annotation PBI_ResultType = Table
+

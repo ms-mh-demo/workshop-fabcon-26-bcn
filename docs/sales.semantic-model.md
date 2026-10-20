@@ -8,15 +8,15 @@ The sales model supports retail revenue, cost, margin, customer participation, p
 |---|---|
 | Source | [lab2/resources/sales.SemanticModel](../lab2/resources/sales.SemanticModel/) |
 | Model metadata name | Model |
-| Storage mode | Import; one M partition per table |
-| Tables / columns | 5 / 63 |
-| Measures / relationships | 13 / 5 |
-| Hierarchies / calculation groups | 1 / 0 |
+| Storage mode | Import; one M partition per data table |
+| Tables / columns | 7 / 68 |
+| Measures / relationships | 16 / 5 |
+| Hierarchies / calculation groups | 1 / 1 |
 | Security roles | 0 |
 | Model culture / source query culture | en-US / en-GB |
 | Implicit measures | Discouraged |
 
-All five tables and all thirteen measures are visible. Most numeric fact inputs and relationship keys are hidden to favor explicit measures. Table and measure descriptions are empty in the inspected metadata; the explanations below are derived from expressions, field names, and the supplied [business context](../lab2/resources/company-context.md), not existing model descriptions.
+The five business tables and thirteen original measures remain visible. Currency Conversion adds a visible reporting-currency selector; Currency Exchange and three internal conversion measures are hidden. Most numeric fact inputs and relationship keys are hidden to favor explicit measures. The explanations below describe expressions and field names in the context of the supplied [business context](../lab2/resources/company-context.md).
 
 ## Model Structure
 
@@ -40,6 +40,58 @@ Sales is the fact table, with Calendar, Customer, Product, and Store as dimensio
 | Delivery Date | Calendar.Date | No | Delivery-date analysis requires explicit relationship activation; none of the current measures does so |
 
 Because Sales does not filter dimensions back through these relationships, dimension row counts are not automatically counts of entities with sales in the selected period.
+
+Currency Exchange and Currency Conversion are intentionally disconnected utility tables. Conversion looks up a rate by date, source currency, and target currency without introducing a many-to-many relationship or filtering sales to only month-end transactions.
+
+## Currency Conversion
+
+The **Currency Conversion[Currency]** calculation group has three items, ordered **EUR**, **USD**, and **GBP**, with precedence 10. Add this field to a single-select slicer to change reporting currency, or to matrix columns to compare currencies side by side. Turn off the matrix total across currencies: adding different reporting currencies is not meaningful.
+
+Each item converts these existing financial measures and applies a two-decimal format labeled with the selected ISO currency code:
+
+- Sales Amount, Cost, and Margin.
+- Sales Amount (LY), using the prior-year sales dates and their rates.
+- Sales Amount Avg per Day, Sales Amount (6M average), and Sales Amount (12M average), averaging converted daily amounts rather than multiplying an aggregate average by one exchange rate.
+
+Counts, Sales Qty, and other measures retain their original values and formats. With no currency selection, existing measure expressions and formats are unchanged, including their original mixed-currency behavior. Multiple or empty currency selections raise an explicit error for the financial measures instead of returning a combined-currency total.
+
+### Rate source and policy
+
+Currency Exchange imports [RAW-CurrencyExchange.csv](https://raw.githubusercontent.com/RuiRomano/workshop-fabcon-26-bcn/main/resources/sample-data/RAW-CurrencyExchange.csv) as four explicitly typed columns:
+
+| Model column | CSV column | Type | Meaning |
+|---|---|---|---|
+| Date | Date | DateTime | Rate date |
+| From Currency | FromCurrency | String | Sales transaction currency |
+| To Currency | ToCurrency | String | EUR, USD, or GBP reporting currency |
+| Exchange Rate | Exchange | Decimal | Multiplier from source to target currency |
+
+For each sales line, conversion multiplies the local amount by the rate matching **Sales[Currency Code]**, the selected reporting currency, and:
+
+- **Before 2020:** the last date of the order's month, using that month's closing rate.
+- **From January 2020:** the exact order date, using the daily rate.
+
+Conversion happens before aggregation, so mixed source currencies and multi-period totals use the appropriate rates for every line. Sales[Exchange Rate] is not used, avoiding a second conversion through that unrelated imported field. Missing, nonpositive, or conflicting rates cause an error rather than silently dropping sales or substituting a rate of one.
+
+Three hidden Sales measures implement the shared logic: Currency Conversion Rate, Sales Amount (Converted), and Cost (Converted). The calculation items derive converted margin as converted sales less converted cost and preserve the original prior-year and rolling-window guards. Future financial measures need explicit inclusion in the calculation items and their format expressions.
+
+After refreshing in Power BI Desktop, a useful comparison query is:
+
+```dax
+EVALUATE
+    SUMMARIZECOLUMNS (
+        'Currency Conversion'[Currency],
+        "Net Sales", [Sales Amount],
+        "Cost", [Cost],
+        "Margin", [Margin],
+        "Prior Year", [Sales Amount (LY)],
+        "Daily Average", [Sales Amount Avg per Day],
+        "Units", [Sales Qty]
+    )
+ORDER BY 'Currency Conversion'[Currency]
+```
+
+The expected shape is three rows, with identical units across currencies and margin equal to net sales minus cost. Runtime refresh and DAX execution require Power BI Desktop or a deployed model; offline metadata validation does not execute these calculations.
 
 ## Tables and Columns
 
@@ -327,7 +379,7 @@ Format: `#,##0`.
 
 ### Report-local calculation
 
-The Sales page area chart also defines `MOVINGAVERAGE([Sales Amount], 12)` as a visual calculation. It is not a fourteenth semantic measure and is not either rolling daily-average measure above. See the [report guide](sales.report.md#main-metrics).
+The Sales page area chart also defines `MOVINGAVERAGE([Sales Amount], 12)` as a visual calculation. It is not a semantic measure and is not either rolling daily-average measure above. See the [report guide](sales.report.md#main-metrics).
 
 ## Security
 
@@ -349,7 +401,7 @@ Changing Environment labels the imported rows; it does not select a different so
 
 ### Partitions
 
-Each table has one **Import / M** partition.
+Each data table has one **Import / M** partition. Currency Conversion is a calculation-group table, not a CSV import.
 
 | Table | Input | Main transformations |
 |---|---|---|
@@ -358,8 +410,9 @@ Each table has one **Import / M** partition.
 | Product | RAW-Product.csv | Promote headers, type columns, rename Product Name to Product |
 | Customer | RAW-Customer.csv | Promote headers, type columns, rename Name to Customer, remove source Age |
 | Store | RAW-Store.csv | Promote headers, type columns, rename Name to Store |
+| Currency Exchange | RAW-CurrencyExchange.csv | Promote four headers and type date, source currency, target currency, and fixed-decimal rate using en-US parsing |
 
-The CSV queries use comma delimiters, UTF-8, and `QuoteStyle.None`, with fixed expected column counts of 13, 14, 13, and 9 for Sales, Product, Customer, and Store respectively. Local [sample CSVs](../resources/sample-data/) are supporting workshop resources; the configured imports fetch the remote URL above.
+The CSV queries use comma delimiters, UTF-8, and `QuoteStyle.None`, with fixed expected column counts of 13, 14, 13, 9, and 4 for Sales, Product, Customer, Store, and Currency Exchange respectively. Local [sample CSVs](../resources/sample-data/) are supporting workshop resources; the configured imports fetch remote data. Currency Exchange uses the exact raw GitHub URL linked above rather than the HttpSource parameter.
 
 ### Refresh considerations
 
@@ -368,11 +421,12 @@ The CSV queries use comma delimiters, UTF-8, and `QuoteStyle.None`, with fixed e
 - Random values are not seeded; refreshing the same source can change report totals. Treat comparisons across refreshes as sample-data behavior, not business change.
 - Customer.Age recalculates using TODAY. It is not the customer's age on the order date.
 - The Calendar range is fixed and does not grow with the source data or today's date.
-- Exchange Rate is imported but unused. There is no currency dimension or calculation group in this baseline; the separate RAW-CurrencyExchange CSV is not loaded.
-- Refresh and DAX values were not executed. Metadata loaded from the folder does not establish that remote files are reachable or that a service refresh will succeed.
+- Sales.Exchange Rate remains imported but unused; reporting-currency conversion uses the separate Currency Exchange lookup.
+- Refresh Currency Exchange along with Sales before analyzing converted values. Extending Sales beyond the rate file's coverage requires corresponding new rates.
+- Refresh and DAX values were not executed. The edited model was serialized and reloaded successfully, but offline metadata loading does not establish that a service refresh or DAX execution will succeed.
 
 ## Development Notes
 
-The [team rules](../lab2/resources/team-rules.md) describe target standards, including uppercase measures and an optional About table. This baseline retains mixed-case measure names, has no About table, and has empty measure descriptions. Later lab exercises intentionally extend it; those desired changes are not represented as existing functionality here.
+The [team rules](../lab2/resources/team-rules.md) describe target standards, including uppercase measures and an optional About table. The model retains mixed-case measure names and has no About table. Currency conversion preserves existing business measures and descriptions and adds descriptions for its utility objects.
 
-Use [AGENTS.md](../lab2/resources/AGENTS.md) when modifying the project. This documentation task inspected the model without changing its source or serializing an edited model.
+Use [AGENTS.md](../lab2/resources/AGENTS.md) when modifying the project. Currency-conversion objects were authored through the Power BI modeling MCP and exported to the local semantic-model definition.

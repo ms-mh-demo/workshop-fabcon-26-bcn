@@ -1,0 +1,147 @@
+table 'Currency Conversion'
+	lineageTag: 4d96408c-8787-4593-967b-42b7b138236c
+
+	/// Select EUR, USD, or GBP to convert local-currency sales, cost, margin, and sales time-analysis measures. Uses monthly closing rates through 2019 and exact daily rates from 2020. Counts and quantities retain their values and formats. No selection preserves original measures; multiple selections must be analyzed separately.
+	calculationGroup
+		precedence: 10
+
+		/// Reject ambiguous currency totals for financial measures while retaining counts and quantities.
+		multipleOrEmptySelectionExpression =
+				IF (
+				    ISSELECTEDMEASURE (
+				        [Sales Amount], [Cost], [Margin], [Sales Amount (LY)],
+				        [Sales Amount Avg per Day], [Sales Amount (6M average)], [Sales Amount (12M average)]
+				    ),
+				    ERROR ( "Select exactly one reporting currency (EUR, USD, or GBP); currency totals cannot be combined." ),
+				    SELECTEDMEASURE()
+				)
+
+		/// Preserve existing measure results and formatting when no reporting currency is selected.
+		noSelectionExpression = SELECTEDMEASURE()
+
+		/// Convert financial measures from each sale's local currency to euro using the order-date rate policy.
+		calculationItem EUR =
+				SWITCH (
+				    TRUE(),
+				    ISSELECTEDMEASURE ( [Sales Amount] ), [Sales Amount (Converted)],
+				    ISSELECTEDMEASURE ( [Cost] ), [Cost (Converted)],
+				    ISSELECTEDMEASURE ( [Margin] ), [Sales Amount (Converted)] - [Cost (Converted)],
+				    ISSELECTEDMEASURE ( [Sales Amount (LY)] ),
+				        IF (
+				            [Sales Amount (Converted)] > 0,
+				            CALCULATE ( [Sales Amount (Converted)], SAMEPERIODLASTYEAR ( 'Calendar'[Date] ) )
+				        ),
+				    ISSELECTEDMEASURE ( [Sales Amount Avg per Day] ),
+				        AVERAGEX ( VALUES ( 'Calendar'[Date] ), [Sales Amount (Converted)] ),
+				    ISSELECTEDMEASURE ( [Sales Amount (6M average)], [Sales Amount (12M average)] ),
+				        VAR _months = IF ( ISSELECTEDMEASURE ( [Sales Amount (6M average)] ), -6, -12 )
+				        VAR _selectedDate = MAX ( 'Calendar'[Date] )
+				        VAR _period = DATESINPERIOD ( 'Calendar'[Date], _selectedDate, _months, MONTH )
+				        VAR _result =
+				            CALCULATE (
+				                AVERAGEX ( VALUES ( 'Calendar'[Date] ), [Sales Amount (Converted)] ),
+				                _period
+				            )
+				        VAR _firstDate = MINX ( _period, 'Calendar'[Date] )
+				        VAR _lastSalesDate = MAX ( 'Sales'[Order Date] )
+				        RETURN IF ( _firstDate <= _lastSalesDate, _result ),
+				    SELECTEDMEASURE()
+				)
+
+			formatStringDefinition =
+					IF (
+					    ISSELECTEDMEASURE (
+					        [Sales Amount], [Cost], [Margin], [Sales Amount (LY)],
+					        [Sales Amount Avg per Day], [Sales Amount (6M average)], [Sales Amount (12M average)]
+					    ),
+					    """EUR"" #,##0.00;(""EUR"" #,##0.00);""EUR"" 0.00",
+					    SELECTEDMEASUREFORMATSTRING()
+					)
+
+		/// Convert financial measures from each sale's local currency to US dollars using the order-date rate policy.
+		calculationItem USD =
+				SWITCH (
+				    TRUE(),
+				    ISSELECTEDMEASURE ( [Sales Amount] ), [Sales Amount (Converted)],
+				    ISSELECTEDMEASURE ( [Cost] ), [Cost (Converted)],
+				    ISSELECTEDMEASURE ( [Margin] ), [Sales Amount (Converted)] - [Cost (Converted)],
+				    ISSELECTEDMEASURE ( [Sales Amount (LY)] ),
+				        IF (
+				            [Sales Amount (Converted)] > 0,
+				            CALCULATE ( [Sales Amount (Converted)], SAMEPERIODLASTYEAR ( 'Calendar'[Date] ) )
+				        ),
+				    ISSELECTEDMEASURE ( [Sales Amount Avg per Day] ),
+				        AVERAGEX ( VALUES ( 'Calendar'[Date] ), [Sales Amount (Converted)] ),
+				    ISSELECTEDMEASURE ( [Sales Amount (6M average)], [Sales Amount (12M average)] ),
+				        VAR _months = IF ( ISSELECTEDMEASURE ( [Sales Amount (6M average)] ), -6, -12 )
+				        VAR _selectedDate = MAX ( 'Calendar'[Date] )
+				        VAR _period = DATESINPERIOD ( 'Calendar'[Date], _selectedDate, _months, MONTH )
+				        VAR _result =
+				            CALCULATE (
+				                AVERAGEX ( VALUES ( 'Calendar'[Date] ), [Sales Amount (Converted)] ),
+				                _period
+				            )
+				        VAR _firstDate = MINX ( _period, 'Calendar'[Date] )
+				        VAR _lastSalesDate = MAX ( 'Sales'[Order Date] )
+				        RETURN IF ( _firstDate <= _lastSalesDate, _result ),
+				    SELECTEDMEASURE()
+				)
+
+			formatStringDefinition =
+					IF (
+					    ISSELECTEDMEASURE (
+					        [Sales Amount], [Cost], [Margin], [Sales Amount (LY)],
+					        [Sales Amount Avg per Day], [Sales Amount (6M average)], [Sales Amount (12M average)]
+					    ),
+					    """USD"" #,##0.00;(""USD"" #,##0.00);""USD"" 0.00",
+					    SELECTEDMEASUREFORMATSTRING()
+					)
+
+		/// Convert financial measures from each sale's local currency to pounds sterling using the order-date rate policy.
+		calculationItem GBP =
+				SWITCH (
+				    TRUE(),
+				    ISSELECTEDMEASURE ( [Sales Amount] ), [Sales Amount (Converted)],
+				    ISSELECTEDMEASURE ( [Cost] ), [Cost (Converted)],
+				    ISSELECTEDMEASURE ( [Margin] ), [Sales Amount (Converted)] - [Cost (Converted)],
+				    ISSELECTEDMEASURE ( [Sales Amount (LY)] ),
+				        IF (
+				            [Sales Amount (Converted)] > 0,
+				            CALCULATE ( [Sales Amount (Converted)], SAMEPERIODLASTYEAR ( 'Calendar'[Date] ) )
+				        ),
+				    ISSELECTEDMEASURE ( [Sales Amount Avg per Day] ),
+				        AVERAGEX ( VALUES ( 'Calendar'[Date] ), [Sales Amount (Converted)] ),
+				    ISSELECTEDMEASURE ( [Sales Amount (6M average)], [Sales Amount (12M average)] ),
+				        VAR _months = IF ( ISSELECTEDMEASURE ( [Sales Amount (6M average)] ), -6, -12 )
+				        VAR _selectedDate = MAX ( 'Calendar'[Date] )
+				        VAR _period = DATESINPERIOD ( 'Calendar'[Date], _selectedDate, _months, MONTH )
+				        VAR _result =
+				            CALCULATE (
+				                AVERAGEX ( VALUES ( 'Calendar'[Date] ), [Sales Amount (Converted)] ),
+				                _period
+				            )
+				        VAR _firstDate = MINX ( _period, 'Calendar'[Date] )
+				        VAR _lastSalesDate = MAX ( 'Sales'[Order Date] )
+				        RETURN IF ( _firstDate <= _lastSalesDate, _result ),
+				    SELECTEDMEASURE()
+				)
+
+			formatStringDefinition =
+					IF (
+					    ISSELECTEDMEASURE (
+					        [Sales Amount], [Cost], [Margin], [Sales Amount (LY)],
+					        [Sales Amount Avg per Day], [Sales Amount (6M average)], [Sales Amount (12M average)]
+					    ),
+					    """GBP"" #,##0.00;(""GBP"" #,##0.00);""GBP"" 0.00",
+					    SELECTEDMEASUREFORMATSTRING()
+					)
+
+	/// Select EUR (euro), USD (US dollar), or GBP (pounds sterling). Use a single-select slicer, or place currencies on separate matrix columns; combined currency totals are not meaningful.
+	column Currency
+		dataType: string
+		isKey
+		lineageTag: b4572662-3ba7-4576-9506-c75edc0a0316
+		summarizeBy: none
+
+	partition 'Partition_Currency Conversion' = calculationGroup
+

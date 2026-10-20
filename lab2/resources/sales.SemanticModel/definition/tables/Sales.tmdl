@@ -81,6 +81,53 @@ table Sales
 		formatString: $ #,##0
 		lineageTag: 3e5cb67e-a411-476f-ad34-7ec10dfd084d
 
+	/// Internal rate lookup evaluated for one sales line. Matches source currency and selected EUR/USD/GBP target, using order-month closing date before 2020 and exact order date thereafter. Raises an error for missing, ambiguous, or nonpositive rates.
+	measure 'Currency Conversion Rate' =
+			VAR _orderDate = SELECTEDVALUE ( 'Sales'[Order Date] )
+			VAR _sourceCurrency = SELECTEDVALUE ( 'Sales'[Currency Code] )
+			VAR _targetCurrency = SELECTEDVALUE ( 'Currency Conversion'[Currency] )
+			VAR _rateDate = IF ( _orderDate < DATE ( 2020, 1, 1 ), EOMONTH ( _orderDate, 0 ), _orderDate )
+			VAR _rate =
+			    LOOKUPVALUE (
+			        'Currency Exchange'[Exchange Rate],
+			        'Currency Exchange'[Date], _rateDate,
+			        'Currency Exchange'[From Currency], _sourceCurrency,
+			        'Currency Exchange'[To Currency], _targetCurrency
+			    )
+			RETURN
+			    IF (
+			        ISBLANK ( _orderDate ) || ISBLANK ( _sourceCurrency ) || ISBLANK ( _targetCurrency )
+			            || ISBLANK ( _rate ) || _rate <= 0,
+			        ERROR ( "Missing or invalid currency rate for this sale." ),
+			        _rate
+			    )
+		formatString: 0.0000
+		isHidden
+		displayFolder: Currency Conversion
+		lineageTag: 375fcd74-6788-4669-bb11-ed9cba8a02c5
+
+	/// Internal net-sales calculation for the selected reporting currency. Converts quantity times local net price on every line before aggregation. Used inside currency calculation items so prior-year and daily-average measures use rates for their actual sales dates.
+	measure 'Sales Amount (Converted)' =
+			SUMX (
+			    'Sales',
+			    'Sales'[Quantity] * 'Sales'[Net Price] * [Currency Conversion Rate]
+			)
+		formatString: #,##0.00
+		isHidden
+		displayFolder: Currency Conversion
+		lineageTag: 08172b3a-5fab-4786-9a5f-a51132061d78
+
+	/// Internal cost calculation for the selected reporting currency. Converts quantity times local unit cost on every sales line before aggregation, using the same order-date policy as converted net sales.
+	measure 'Cost (Converted)' =
+			SUMX (
+			    'Sales',
+			    'Sales'[Quantity] * 'Sales'[Unit Cost] * [Currency Conversion Rate]
+			)
+		formatString: #,##0.00
+		isHidden
+		displayFolder: Currency Conversion
+		lineageTag: 46991801-0250-411e-865a-3c20c6fca49c
+
 	column 'Order Number'
 		dataType: int64
 		formatString: 0
